@@ -29,13 +29,15 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const databasesList = await client.db('volunteerNetwork');
-    const collectionsList = await databasesList.collection('volunteerList');
+    // Establish and verify connection
+    const volunteerNetworkDb = client.db('volunteerNetwork');
+    const volunteerListCollection = volunteerNetworkDb.collection('volunteerList');
+    const volunteerRequestsCollection = volunteerNetworkDb.collection('requests');
 
     // Define an endpoint to handle adding a new volunteer post to the database
     app.post("/addPost", async (req, res) => {
       const post = req.body;
-      const result = await collectionsList.insertOne(post);
+      const result = await volunteerListCollection.insertOne(post);
       res.send(result);
     });
 
@@ -44,7 +46,7 @@ async function run() {
     app.get("/volunteerPosts", async (req, res) => {
       const { title } = req.query;
       const query = title ? { title: { $regex: title, $options: "i" } } : {};
-      const posts = await collectionsList.find(query).toArray();
+      const posts = await volunteerListCollection.find(query).toArray();
       res.send(posts);
     });
 
@@ -53,12 +55,49 @@ async function run() {
     app.get("/volunteerPost/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const post = await collectionsList.findOne(query);
+      const post = await volunteerListCollection.findOne(query);
       res.send(post);
     });
 
 
 
+
+    // Fetch posts of the logged-in user by email
+    app.get('/my-posts', async (req, res) => {
+      const { email } = req.query;
+      if (!email) {
+        return res.status(400).send({ message: 'Email is required' });
+      }
+    
+      try {
+        const myPosts = await volunteerListCollection.find({ organizerEmail: email }).toArray();
+        res.send(myPosts);
+      } catch (error) {
+        res.status(500).send({ message: 'Failed to fetch posts', error });
+      }
+    });
+
+
+    // DELETE a post by ID
+    app.delete("/volunteerPost/:id", async (req, res) => {
+      const id = req.params.id;
+      try {
+        const query = { _id: new ObjectId(id) };
+        const result = await volunteerListCollection.deleteOne(query);
+    
+        if (result.deletedCount > 0) {
+          res.send({ message: "Post deleted successfully" });
+        } else {
+          res.status(404).send({ message: "Post not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to delete post", error });
+      }
+    });
+
+
+
+    
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
