@@ -171,6 +171,77 @@ async function run() {
         res.status(500).send({ message: "Failed to update post", error });
       }
     });
+
+
+    // Fetch upcoming events
+    app.get("/events", async (req, res) => {
+      try {
+        const events = [
+          {
+            "id": 1,
+            "title": "Park Restoration",
+            "description": "Join us to restore the city's oldest park by planting trees and painting benches.",
+            "date": "2024-01-10",
+            "thumbnail": "https://i.ibb.co.com/4Fg1dMk/images-q-tbn-ANd9-Gc-Q8iz3-MRi-MHw-WNHSYQYu-ERh-J-j1ke-Vd7h-Lktg-s.jpg"
+          },
+          {
+            "id": 2,
+            "title": "Homeless Shelter Support",
+            "description": "Assist in serving meals and organizing resources at the local shelter.",
+            "date": "2024-01-12",
+            "thumbnail": "https://i.ibb.co.com/4FqnBG3/images-q-tbn-ANd9-Gc-Ri50a6fo4h-Ns-Ocza2-KCDZel89-Jiy-P9-OGQq-KQ-s.jpg"
+          },
+          {
+            "id": 3,
+            "title": "Library Book Drive",
+            "description": "Collect and organize book donations to improve literacy in the community.",
+            "date": "2024-01-15",
+            "thumbnail": "https://i.ibb.co.com/tqv0DQS/images-q-tbn-ANd9-Gc-RJb6-TJ17-LSLi-Lw0o-S2-Gss-MEuq25h-Yvve5-F0qaj-Mye-TYd-Bi6-o-Sqkv-Zz7-QQze-H4d.jpg"
+          },
+          {
+            "id": 4,
+            "title": "Community Garden Day",
+            "description": "Spend the day gardening and learning about sustainable practices.",
+            "date": "2024-01-18",
+            "thumbnail": "https://i.ibb.co.com/7Q2SNhq/images-q-tbn-ANd9-Gc-SRMuk-Lma9-W1zdhl-Z4u-Ijkfn-Sd-Jg3-Dg-G7bmsg-s.jpg"
+          },
+          {
+            "id": 5,
+            "title": "Elderly Care Visit",
+            "description": "Spend quality time with the elderly, sharing stories and helping with activities.",
+            "date": "2024-01-20",
+            "thumbnail": "https://i.ibb.co.com/8dzzSBh/images-q-tbn-ANd9-Gc-T8gxa90l-i-M3-Jlqh0-Uj-IQGJhj-Y-Ya62-ODQw-s.jpg"
+          },
+          {
+            "id": 6,
+            "title": "Wildlife Conservation Workshop",
+            "description": "Help raise awareness and participate in activities for local wildlife protection.",
+            "date": "2024-01-22",
+            "thumbnail": "https://i.ibb.co.com/4PL9KnM/e597cb-9fe141358e77463080562e2eea73246c-mv2.png"
+          },
+          {
+            "id": 7,
+            "title": "Neighborhood Cleanup",
+            "description": "Join hands with neighbors to clean up and beautify the community.",
+            "date": "2024-01-25",
+            "thumbnail": "https://i.ibb.co.com/YLHFMbd/clean-it-up-textimage-3x2.jpg"
+          },
+          {
+            "id": 8,
+            "title": "Art for Kids",
+            "description": "Volunteer to teach art and inspire creativity among children in local schools.",
+            "date": "2024-01-30",
+            "thumbnail": "https://www.kiwifamilies.co.nz/wp-content/uploads/2022/02/Heart-Art-.jpg"
+          }
+        ];
+        
+        res.send(events);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to fetch events", error });
+      }
+    });
+
+
     
     
 
