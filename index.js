@@ -95,6 +95,28 @@ async function run() {
       }
     });
 
+    // Update a post by ID
+    app.put("/volunteerPost/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedPost = req.body;
+    
+      try {
+        const query = { _id: new ObjectId(id) };
+        const update = { $set: updatedPost };
+        const result = await volunteerListCollection.updateOne(query, update);
+    
+        if (result.matchedCount > 0) {
+          res.send({ message: "Post updated successfully", result });
+        } else {
+          res.status(404).send({ message: "Post not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to update post", error });
+      }
+    });
+
+
+
 
 
     
