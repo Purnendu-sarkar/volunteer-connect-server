@@ -50,6 +50,22 @@ async function run() {
       res.send(posts);
     });
 
+    // Fetch volunteer posts sorted by deadline (ascending) with a limit of 6
+    app.get("/volunteerNeedsNow", async (req, res) => {
+      try {
+        const posts = await volunteerListCollection
+          .find({})
+          .sort({ deadline: 1 })
+          .limit(6) 
+          .toArray();
+        res.send(posts);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to fetch posts", error });
+      }
+    });
+
+
+
 
     // Fetch a single post by ID from the database 
     app.get("/volunteerPost/:id", async (req, res) => {
