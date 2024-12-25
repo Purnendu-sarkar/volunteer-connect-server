@@ -116,6 +116,49 @@ async function run() {
     });
 
 
+    
+    app.post("/requestVolunteer/:id", async (req, res) => {
+      const { id } = req.params;
+      const requestData = req.body;
+      try {
+        await volunteerRequestsCollection.insertOne(requestData);
+        await volunteerListCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $inc: { volunteersNeeded: -1 } }
+        );
+        res.send({ message: "Request submitted successfully!" });
+      } catch (error) {
+        res.status(500).send({ message: "Error submitting request", error });
+      }
+    });
+
+
+  
+    app.patch("/volunteerPost/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
+    
+      try {
+        const query = { _id: new ObjectId(id) };
+        const update = updateData.$inc
+          ? { $inc: updateData.$inc }
+          : { $set: updateData };
+    
+        const result = await volunteerListCollection.updateOne(query, update);
+    
+        if (result.matchedCount > 0) {
+          res.send({ message: "Post updated successfully", result });
+        } else {
+          res.status(404).send({ message: "Post not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to update post", error });
+      }
+    });
+    
+    
+
+
 
 
 
