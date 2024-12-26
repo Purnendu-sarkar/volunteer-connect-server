@@ -173,6 +173,48 @@ async function run() {
     });
 
 
+    // Fetch all requests for a specific user
+    app.get("/my-volunteer-requests", async (req, res) => {
+      const { email } = req.query;
+      if (!email) {
+        return res.status(400).send({ message: "Email is required" });
+      }
+    
+      try {
+        const requests = await volunteerRequestsCollection
+          .find({ volunteerEmail: email })
+          .toArray();
+        res.send(requests);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to fetch requests", error });
+      }
+    });  
+    
+    // Delete a specific volunteer request
+    app.delete("/my-volunteer-requests/:id", async (req, res) => {
+      const { id } = req.params;
+    
+      try {
+        const result = await volunteerRequestsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+    
+        if (result.deletedCount === 1) {
+          res.send({ message: "Request deleted successfully" });
+        } else {
+          res.status(404).send({ message: "Request not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to delete request", error });
+      }
+    });
+
+
+
+
+
+
+
     // Fetch upcoming events
     app.get("/events", async (req, res) => {
       try {
