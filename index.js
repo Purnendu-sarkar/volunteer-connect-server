@@ -1,13 +1,19 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const jwt = require('jsonwebtoken')
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
+const corsOptions = {
+  origin: ['http://localhost:5173'],
+  credentials: true,
+  optionalSuccessStatus: 200,
+}
 
 //Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 
@@ -33,6 +39,35 @@ async function run() {
     const volunteerNetworkDb = client.db('volunteerNetwork');
     const volunteerListCollection = volunteerNetworkDb.collection('volunteerList');
     const volunteerRequestsCollection = volunteerNetworkDb.collection('requests');
+
+
+     // generate jwt
+     app.post('/jwt', async (req, res) => {
+      const email = req.body
+      // create token
+      const token = jwt.sign(email, process.env.SECRET_KEY, {
+        expiresIn: '365d',
+      })
+      console.log(token)
+      res
+        .cookie('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        })
+        .send({ success: true })
+    })
+
+     // logout || clear cookie from browser
+     app.get('/logout', async (req, res) => {
+      res
+        .clearCookie('token', {
+          maxAge: 0,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        })
+        .send({ success: true })
+    })
 
     // Define an endpoint to handle adding a new volunteer post to the database
     app.post("/addPost", async (req, res) => {
