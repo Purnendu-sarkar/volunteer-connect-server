@@ -132,21 +132,33 @@ async function run() {
     });
 
 
-    
     app.post("/requestVolunteer/:id", async (req, res) => {
       const { id } = req.params;
       const requestData = req.body;
+    
       try {
+        const existingRequest = await volunteerRequestsCollection.findOne({
+          requestId: id,
+          volunteerEmail: requestData.volunteerEmail,
+        });
+    
+        if (existingRequest) {
+          return res.status(400).send({
+            message: "You have already submitted a request for this post!",
+          });
+        }
         await volunteerRequestsCollection.insertOne(requestData);
         await volunteerListCollection.updateOne(
           { _id: new ObjectId(id) },
           { $inc: { volunteersNeeded: -1 } }
         );
+    
         res.send({ message: "Request submitted successfully!" });
       } catch (error) {
         res.status(500).send({ message: "Error submitting request", error });
       }
     });
+    
 
 
   
@@ -172,25 +184,24 @@ async function run() {
       }
     });
 
-
-    // Fetch all requests for a specific user
-    app.get("/my-volunteer-requests", async (req, res) => {
+    // Fetch requests for a specific post owner
+    app.get("/requests-by-owner", async (req, res) => {
       const { email } = req.query;
       if (!email) {
-        return res.status(400).send({ message: "Email is required" });
+        return res.status(400).send({ message: "Organizer email is required" });
       }
     
       try {
         const requests = await volunteerRequestsCollection
-          .find({ volunteerEmail: email })
+          .find({ organizerEmail: email })
           .toArray();
         res.send(requests);
       } catch (error) {
         res.status(500).send({ message: "Failed to fetch requests", error });
       }
-    });  
-    
-    // Delete a specific volunteer request
+    });
+
+    // Delete a specific volunteer request by ID
     app.delete("/my-volunteer-requests/:id", async (req, res) => {
       const { id } = req.params;
     
@@ -208,8 +219,6 @@ async function run() {
         res.status(500).send({ message: "Failed to delete request", error });
       }
     });
-
-
 
 
 
