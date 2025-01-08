@@ -6,8 +6,9 @@ const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
+const cookieParser = require('cookie-parser');
 const corsOptions = {
-  origin: ['http://localhost:5173'],
+  origin: ['http://localhost:5173', 'https://volunteer-connect-d5524.web.app', 'https://volunteer-connect-d5524.firebaseapp.com'],
   credentials: true,
   optionalSuccessStatus: 200,
 }
@@ -15,6 +16,7 @@ const corsOptions = {
 //Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 
 
@@ -30,10 +32,26 @@ const client = new MongoClient(uri, {
   }
 });
 
+// verifyToken
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token || req.query?.token;
+  console.log(req.cookies);
+  if (!token) return res.status(401).send({ message: 'Unauthorized access, token missing' })
+  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: 'Forbidden, invalid token' })
+    }
+    req.decoded = decoded;
+    next();
+  })
+
+  
+}
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     // Establish and verify connection
     const volunteerNetworkDb = client.db('volunteerNetwork');
@@ -43,7 +61,7 @@ async function run() {
 
      // generate jwt
      app.post('/jwt', async (req, res) => {
-      const email = req.body
+      const email = req.body;
       // create token
       const token = jwt.sign(email, process.env.SECRET_KEY, {
         expiresIn: '365d',
@@ -55,7 +73,7 @@ async function run() {
           secure: process.env.NODE_ENV === 'production',
           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         })
-        .send({ success: true })
+        .send({ success: true, token})
     })
 
      // logout || clear cookie from browser
@@ -114,8 +132,9 @@ async function run() {
 
 
     // Fetch posts of the logged-in user by email
-    app.get('/my-posts', async (req, res) => {
-      const { email } = req.query;
+    app.get('/my-posts', verifyToken, async (req, res) => {
+      const { email } = req.decoded;
+      // const { email} = req.query;
       if (!email) {
         return res.status(400).send({ message: 'Email is required' });
       }
@@ -337,7 +356,7 @@ async function run() {
 
     
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
